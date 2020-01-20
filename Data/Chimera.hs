@@ -14,6 +14,7 @@
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
 
 module Data.Chimera
   ( -- * Memoization
@@ -52,6 +53,8 @@ import Control.Applicative
 import Data.Bits
 import Data.Function (fix)
 import Data.Functor.Identity
+import Data.Distributive
+import qualified Data.Functor.Rep as Rep
 import qualified Data.Vector as V
 import qualified Data.Vector.Generic as G
 import qualified Data.Vector.Unboxed as U
@@ -124,6 +127,14 @@ instance Applicative (Chimera V.Vector) where
 #if __GLASGOW_HASKELL__ > 801
   liftA2 f = zipSubvectors (liftA2 f)
 #endif
+
+instance Distributive (Chimera V.Vector) where
+  distribute xs = tabulate (\k -> fmap (`index` k) xs)
+
+instance Rep.Representable (Chimera V.Vector) where
+  type Rep (Chimera V.Vector) = Word
+  tabulate = tabulate
+  index = index
 
 bits :: Int
 bits = fbs (0 :: Word)
